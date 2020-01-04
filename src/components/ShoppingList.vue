@@ -1,20 +1,25 @@
 <template>
-    <b-row>
+    <draggable v-model="shoppingList" @start="drag=true" @end="drag=false">
         <b-modal id="modal-1" hide-header hide-footer>
             <b-button variant="warning" @click="updateShoppingList" class="mt-3" block>Synchroniser</b-button>
         </b-modal>
-        <div v-for="(item, index) in shoppingList" :key="index" class="input-group">
-            <div class="input-group-prepend">
-                <div class="input-group-text">
-                    <b-form-checkbox :id="'c-' + index" v-model="item.done" @change="changeDone"/>
+        <transition-group>
+            <div v-for="(item, index) in shoppingList" :key="index">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <b-form-checkbox :id="'c-' + index" v-model="item.done" @change="changeDone"/>
+                        </div>
+                    </div>
+                    <b-form-textarea :class="item.done ? 'line-through' : ''" v-model="item.text"
+                                     :disabled="item.done" rows="2" max-rows="10"/>
+                    <div class="input-group-append">
+                        <b-button :id="'c-remove-' + index" @click="removeItem(index)">&#x2718;</b-button>
+                    </div>
                 </div>
             </div>
-            <b-form-textarea :class="item.done ? 'line-through' : ''" v-model="item.text"
-                             :disabled="item.done" rows="2" max-rows="10"/>
-            <div class="input-group-append">
-                <b-button :id="'c-remove-' + index" @click="removeItem(index)">&#x2718;</b-button>
-            </div>
-        </div>
+
+        </transition-group>
         <div class="input-group mb-3">
             <b-form-textarea @focusout="addItem"
                              @keydown.enter.exact.prevent
@@ -22,11 +27,12 @@
                              v-model="newItem" rows="2" max-rows="10"
                              ref="addItemField"/>
         </div>
-    </b-row>
+    </draggable>
 </template>
 
 <script>
     import axios from "axios";
+    import draggable from 'vuedraggable';
 
     export default {
         data: function () {
@@ -38,6 +44,9 @@
                 hasUpdate: 0,
                 newItem: ""
             }
+        },
+        components: {
+            draggable
         },
         methods: {
             addItem(event) {
@@ -94,7 +103,7 @@
         },
         created() {
             this.updateShoppingList();
-            this.interval = setInterval(this.checkUpdates, this.updateDelay)
+            this.interval = setInterval(this.checkUpdates, this.updateDelay);
         }
     }
 </script>
@@ -109,5 +118,11 @@
         outline: none;
         box-shadow: none !important;
         border: 1px solid #422918;
+    }
+
+    .no-style {
+        list-style: none;
+        padding: 0;
+        margin: 0;
     }
 </style>

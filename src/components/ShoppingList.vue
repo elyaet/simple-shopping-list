@@ -6,7 +6,7 @@
         <div v-for="(item, index) in shoppingList" :key="index" class="input-group">
             <div class="input-group-prepend">
                 <div class="input-group-text">
-                    <b-form-checkbox :id="'c-' + index" v-model="item.done" @change="changeDone"/>
+                    <b-form-checkbox :id="'c-' + index" v-model="item.done" />
                 </div>
             </div>
             <b-form-textarea :class="item.done ? 'line-through' : ''" v-model="item.text"
@@ -57,7 +57,6 @@
             },
             removeItem(index) {
                 this.shoppingList.splice(index, 1);
-                this.$refs.addItemField.focus();
             },
             updateShoppingList() {
                 axios
@@ -69,9 +68,6 @@
                 axios
                     .get(this.resShoppingListPath)
                     .then(response => (JSON.stringify(response.data) != JSON.stringify(this.shoppingList) ? this.hasUpdate++ : this.hasUpdate = 0));
-            },
-            changeDone() {
-                this.$refs.addItemField.focus();
             }
         },
         watch: {

@@ -1,25 +1,26 @@
 <template>
-    <draggable v-model="shoppingList" @start="drag=true" @end="drag=false">
+    <div>
         <b-modal id="modal-1" hide-header hide-footer>
             <b-button variant="warning" @click="updateShoppingList" class="mt-3" block>Synchroniser</b-button>
         </b-modal>
-        <transition-group>
-            <div v-for="(item, index) in shoppingList" :key="index">
+        <draggable v-model="shoppingList" handle=".handle">
+
+            <div class="list-group-item" v-for="(item, index) in shoppingList" :key="item.date">
                 <div class="input-group">
                     <div class="input-group-prepend">
                         <div class="input-group-text">
-                    <b-form-checkbox :id="'c-' + index" v-model="item.done" />
+                            <b-form-checkbox :id="'c-' + index" v-model="item.done"/>
                         </div>
                     </div>
                     <b-form-textarea :class="item.done ? 'line-through' : ''" v-model="item.text"
                                      :disabled="item.done" rows="2" max-rows="10"/>
                     <div class="input-group-append">
+                        <b-button class="fa fa-align-justify handle">&#x2630;</b-button>
                         <b-button :id="'c-remove-' + index" @click="removeItem(index)">&#x2718;</b-button>
                     </div>
                 </div>
             </div>
-
-        </transition-group>
+        </draggable>
         <div class="input-group mb-3">
             <b-form-textarea @focusout="addItem"
                              @keydown.enter.exact.prevent
@@ -27,7 +28,7 @@
                              v-model="newItem" rows="2" max-rows="10"
                              ref="addItemField"/>
         </div>
-    </draggable>
+    </div>
 </template>
 
 <script>
@@ -35,6 +36,9 @@
     import draggable from 'vuedraggable';
 
     export default {
+        components: {
+            draggable
+        },
         data: function () {
             return {
                 resShoppingListPath: "courses.php",
@@ -42,11 +46,9 @@
                 shoppingList: [],
                 underline: "text-decoration:underline;",
                 hasUpdate: 0,
-                newItem: ""
+                newItem: "",
+                dragging: false
             }
-        },
-        components: {
-            draggable
         },
         methods: {
             addItem(event) {
@@ -106,19 +108,9 @@
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-    .line-through {
-        text-decoration: line-through;
-    }
-
-    .form-control:focus {
-        outline: none;
-        box-shadow: none !important;
-        border: 1px solid #422918;
-    }
-
-    .no-style {
-        list-style: none;
+    .list-group-item {
         padding: 0;
-        margin: 0;
+        background-color: #fff;
+        border: none;
     }
 </style>

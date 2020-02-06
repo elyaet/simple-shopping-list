@@ -1,7 +1,7 @@
 <template>
     <div>
         <b-modal id="modal-1" hide-header hide-footer>
-            <b-button variant="warning" @click="updateShoppingList" class="mt-3" block>Synchroniser</b-button>
+            <b-button variant="warning" @click="currentRetry = retryNb" class="mt-3" block>Synchroniser</b-button>
         </b-modal>
         <draggable v-model="shoppingList" handle=".handle">
 
@@ -51,13 +51,15 @@
                 resShoppingListPath: "courses.php",
                 lastUpdated: null,
                 updateDelay: 5000,
+                retryNb: 700,
+                currentRetry: 0,
                 shoppingList: [],
-                underline: "text-decoration:underline;",
-                hasUpdate: 0,
                 newItem: "",
                 dragging: false,
                 bgColor: [".bg-white", "bg-primary", "bg-success", "bg-danger", "bg-warning", "bg-info"],
-                textColor: ["text-dark", "text-white", "text-white", "text-white", "text-white", "text-white"]
+                textColor: ["text-dark", "text-white", "text-white", "text-white", "text-white", "text-white"],
+                mode: "pull",
+                updatedFromBackEnd: false
             }
         },
         methods: {
@@ -83,61 +85,67 @@
                     this.shoppingList[index].tag = 0;
                 }
             },
-            updateShoppingList() {
-                axios
-                    .get(this.resShoppingListPath)
-                    .then(response => {
-                        this.shoppingList = response.data;
-                        this.lastUpdated = response.headers['last-modified'];
-                    })
-                    // eslint-disable-next-line no-unused-vars
-                    .catch(response => {
-
-                    });
-                //this.$bvModal.hide('modal-1')
-            },
             checkUpdates() {
-                let headers = {
-                    'If-Modified-Since': this.lastUpdated
-                };
-                axios
-                    .get(this.resShoppingListPath, {headers})
-                    .then(response => {
-                        JSON.stringify(response.data) !== JSON.stringify(this.shoppingList) && response.headers['last-modified'] !== this.lastUpdated ? this.hasUpdate++ : this.hasUpdate = 0
-                        this.lastUpdated = response.headers['last-modified'];
-                    })
-                    // eslint-disable-next-line no-unused-vars
-                    .catch(response => {
-
-                    });
-            }
-        }
-        ,
-        watch: {
-            shoppingList: {
-                handler() {
-                    axios.post(this.resShoppingListPath, this.shoppingList);
-                    this.$nextTick(function () {
-                        this.newItem = "";
-                    })
-                }
-                ,
-                deep: true
-            }
-            ,
-            hasUpdate: {
-                handler() {
-                    if (this.hasUpdate >= 2) {
-                        //this.$bvModal.show('modal-1')
-                        this.updateShoppingList();
+                if (this.mode === "push") {
+                    axios
+                        .post(this.resShoppingListPath, this.shoppingList)
+                        // eslint-disable-next-line no-unused-vars
+                        .then(response => {
+                            this.mode = "pull";
+                            this.$nextTick(function () {
+                                this.newItem = "";
+                            })
+                        });
+                } else {
+                    if (this.currentRetry > 0) {
+                        this.currentRetry--;
+                        let headers = {
+                            'If-Modified-Since': this.lastUpdated
+                        };
+                        axios
+                            .get(this.resShoppingListPath, {headers})
+                            .then(response => {
+                                if (JSON.stringify(response.data) !== JSON.stringify(this.shoppingList) && response.headers['last-modified'] !== this.lastUpdated) {
+                                    this.shoppingList = response.data;
+                                    this.lastUpdated = response.headers['last-modified'];
+                                    this.updatedFromBackEnd = true;
+                                }
+                            })
+                            // eslint-disable-next-line no-unused-vars
+                            .catch(error => {
+                            });
                     }
                 }
             }
-        }
-        ,
+        },
+        watch: {
+            shoppingList: {
+                handler() {
+                    if (this.updatedFromBackEnd === true) {
+                        this.updatedFromBackEnd = false;
+                    } else {
+                        this.mode = "push";
+                        this.checkUpdates();
+                    }
+
+                }, deep: true
+            },
+            currentRetry: {
+                handler() {
+                    if (this.currentRetry === 0) {
+                        this.$bvModal.show('modal-1');
+                    }
+                    if (this.currentRetry === this.retryNb) {
+                        this.checkUpdates();
+                        this.$bvModal.hide('modal-1');
+                    }
+                }
+            }
+        },
         created() {
-            this.updateShoppingList();
-            this.interval = setInterval(this.checkUpdates, this.updateDelay);
+            this.currentRetry = this.retryNb;
+            this.checkUpdates();
+            setInterval(this.checkUpdates, this.updateDelay);
         }
     }
 </script>
@@ -148,5 +156,9 @@
         padding: 0;
         background-color: #fff;
         border: none;
+    }
+
+    .line-through {
+        text-decoration: line-through;
     }
 </style>

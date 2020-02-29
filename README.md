@@ -1,4 +1,8 @@
-# simple-shopping-list
+# Simple Shopping List
+This web application is intended for days to days shopping list.
+The goal is to provide extremely simple web application that require no training.
+
+
 
 ## Project setup
 ```

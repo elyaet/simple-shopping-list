@@ -3,6 +3,11 @@
         <b-modal id="modal-1" hide-header hide-footer>
             <b-button variant="warning" @click="currentRetry = retryNb" class="mt-3" block>Synchroniser</b-button>
         </b-modal>
+        <b-modal id="modal-2" hide-footer size="xl" body-bg-variant="dark" header-bg-variant="dark">
+            <div class="d-block text-center">
+                <b-img src="ee.gif" fluid alt="ee"></b-img>
+            </div>
+        </b-modal>
         <draggable v-model="shoppingList" handle=".handle">
 
             <div class="list-group-item" v-for="(item, index) in shoppingList" :key="item.date">
@@ -59,7 +64,8 @@
                 bgColor: [".bg-white", "bg-primary", "bg-success", "bg-danger", "bg-warning", "bg-info"],
                 textColor: ["text-dark", "text-white", "text-white", "text-white", "text-white", "text-white"],
                 mode: "pull",
-                updatedFromBackEnd: false
+                updatedFromBackEnd: false,
+                eeValue: ["œuf","oeuf","Oeuf","Œuf"]
             }
         },
         methods: {
@@ -74,6 +80,9 @@
                     this.$nextTick(function () {
                         event.target.value = "";
                     });
+                    if (this.eeValue.includes(event.target.value)) {
+                        this.$bvModal.show('modal-2');
+                    }
                 }
             },
             removeItem(index) {
@@ -161,4 +170,5 @@
     .line-through {
         text-decoration: line-through;
     }
+
 </style>

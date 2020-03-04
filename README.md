@@ -5,8 +5,6 @@ The goal is to provide extremely simple web application that require no training
 
 ![Example](simple-shopping-list.gif)
 
-
-
 ## Project setup
 ```
 npm install
